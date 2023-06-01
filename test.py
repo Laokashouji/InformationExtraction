@@ -1,6 +1,6 @@
 import paddle
 from paddlenlp.transformers import ErnieTokenizer, ErnieForTokenClassification
-from utils import convert_example, evaluate
+from utils import convert_example, evaluate, predict
 from functools import partial
 from paddlenlp.datasets import MapDataset
 from paddlenlp.data import Stack, Tuple, Pad
@@ -93,5 +93,15 @@ for epoch in range(10):
 
     paddle.save(model.state_dict(),
                 './ernie_result/model_%d.pdparams' % step)
-# model.save_pretrained('./checkpoint')
-# tokenizer.save_pretrained('./checkpoint')
+model.save_pretrained('./checkpoint')
+tokenizer.save_pretrained('./checkpoint')
+
+preds = predict(model, test_loader, test_ds, label_vocab)
+file_path = "ernie_results.txt"
+with open(file_path, "w", encoding="utf8") as fout:
+    fout.write("\n".join(preds))
+# Print some examples
+print(
+    "The results have been saved in the file: %s, some examples are shown below: "
+    % file_path)
+print("\n".join(preds[:10]))
