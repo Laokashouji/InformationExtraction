@@ -1,42 +1,14 @@
 import paddle
 from paddlenlp.transformers import ErnieTokenizer, ErnieForTokenClassification
-from utils import convert_example, evaluate, predict
+from utils import convert_example, evaluate, load_dict, load_dataset
 from functools import partial
-from paddlenlp.datasets import MapDataset
 from paddlenlp.data import Stack, Tuple, Pad
 from paddlenlp.metrics import ChunkEvaluator
 
-def load_dataset(datafiles):
-    def read(data_path):
-        with open(data_path, 'r', encoding='utf-8') as fp:
-            next(fp)
-            for line in fp.readlines():
-                words, labels = line.strip('\n').split('\t')
-                words = words.split('\002')
-                labels = labels.split('\002')
-                yield words, labels
-
-    if isinstance(datafiles, str):
-        return MapDataset(list(read(datafiles)))
-    elif isinstance(datafiles, list) or isinstance(datafiles, tuple):
-        return [MapDataset(list(read(datafile))) for datafile in datafiles]
-
-train_ds, dev_ds, test_ds = load_dataset(datafiles=(
-        './express_ner/train.txt', './express_ner/dev.txt', './express_ner/test.txt'))
-
-def load_dict(dict_path):
-    vocab = {}
-    i = 0
-    for line in open(dict_path, 'r', encoding='utf-8'):
-        key = line.strip('\n')
-        vocab[key] = i
-        i += 1
-    return vocab
-
+train_ds, dev_ds = load_dataset(datafiles=('./express_ner/train.txt', './express_ner/dev.txt'))
 
 label_vocab = load_dict('./conf/tag.dic')
 
-# 设置想要使用模型的名称
 MODEL_NAME = "ernie-1.0"
 tokenizer = ErnieTokenizer.from_pretrained(MODEL_NAME)
 
@@ -44,8 +16,6 @@ trans_func = partial(convert_example, tokenizer=tokenizer, label_vocab=label_voc
 
 train_ds.map(trans_func)
 dev_ds.map(trans_func)
-test_ds.map(trans_func)
-# print(train_ds[0])
 
 ignore_label = -1
 batchify_fn = lambda samples, fn=Tuple(
@@ -65,11 +35,6 @@ dev_loader = paddle.io.DataLoader(
     batch_size=200,
     return_list=True,
     collate_fn=batchify_fn)
-test_loader = paddle.io.DataLoader(
-    dataset=test_ds,
-    batch_size=200,
-    return_list=True,
-    collate_fn=batchify_fn)
 
 model = ErnieForTokenClassification.from_pretrained("ernie-1.0", num_classes=len(label_vocab))
 
@@ -79,7 +44,6 @@ optimizer = paddle.optimizer.AdamW(learning_rate=2e-5, parameters=model.paramete
 
 step = 0
 for epoch in range(10):
-    # Switch the model to training mode
     model.train()
     for idx, (input_ids, token_type_ids, length, labels) in enumerate(train_loader):
         logits = model(input_ids, token_type_ids)
@@ -91,17 +55,5 @@ for epoch in range(10):
         print("epoch:%d - step:%d - loss: %f" % (epoch, step, loss))
     evaluate(model, metric, dev_loader)
 
-    paddle.save(model.state_dict(),
-                './ernie_result/model_%d.pdparams' % step)
 model.save_pretrained('./checkpoint')
 tokenizer.save_pretrained('./checkpoint')
-
-preds = predict(model, test_loader, test_ds, label_vocab)
-file_path = "ernie_results.txt"
-with open(file_path, "w", encoding="utf8") as fout:
-    fout.write("\n".join(preds))
-# Print some examples
-print(
-    "The results have been saved in the file: %s, some examples are shown below: "
-    % file_path)
-print("\n".join(preds[:10]))
