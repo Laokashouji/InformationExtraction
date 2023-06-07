@@ -150,9 +150,9 @@ def run_re(arg, data):
             sent_out.append(city.group().strip(" \n"))
             tags_out.append(hash_map.get('A2'))
 
-        district = re.search(r'\s.*[市区]', line)
+        district = re.search(r'\s.*[县区]', line)
         if district:
-            line = re.sub(r'\s.*[市区]', ' ', line)
+            line = re.sub(r'\s.*[县区]', ' ', line)
             sent_out.append(district.group().strip(" \n"))
             tags_out.append(hash_map.get('A3'))
 
