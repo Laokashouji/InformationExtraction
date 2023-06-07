@@ -19,10 +19,10 @@ dev_ds.map(trans_func)
 
 ignore_label = -1
 batchify_fn = lambda samples, fn=Tuple(
-    Pad(axis=0, pad_val=tokenizer.pad_token_id),  # input_ids
-    Pad(axis=0, pad_val=tokenizer.pad_token_type_id),  # token_type_ids
-    Stack(),  # seq_len
-    Pad(axis=0, pad_val=ignore_label)  # labels
+    Pad(axis=0, pad_val=tokenizer.pad_token_id),
+    Pad(axis=0, pad_val=tokenizer.pad_token_type_id),
+    Stack(),
+    Pad(axis=0, pad_val=ignore_label)
 ): fn(samples)
 
 train_loader = paddle.io.DataLoader(

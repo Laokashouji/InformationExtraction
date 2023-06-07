@@ -130,9 +130,9 @@ def run_re(arg, data):
         sent_out = []
         tags_out = []
 
-        phone = re.search(r'1[3-9]\d{9}$', line)
+        phone = re.search(r'1[3-9]\d{9}', line)
         if phone:
-            line = re.sub(r'1[3-9]\d{9}$', " ", line)
+            line = re.sub(r'1[3-9]\d{9}', " ", line)
             sent_out.append(phone.group())
             tags_out.append(hash_map.get('T'))
 
@@ -156,15 +156,15 @@ def run_re(arg, data):
             sent_out.append(district.group().strip(" \n"))
             tags_out.append(hash_map.get('A3'))
 
-        address = re.search(r'\s.*[号米路心层场街栋楼道厦镇]', line)
+        address = re.search(r'\s.*[号米路心层场街栋楼道厦镇内元东南西北汇]', line)
         if address:
-            line = re.sub(r'\s.*[号米路心层场街栋楼道厦镇]', ' ', line)
+            line = re.sub(r'\s.*[号米路心层场街栋楼道厦镇内元东南西北汇]', ' ', line)
             sent_out.append(address.group().strip(" \n"))
             tags_out.append(hash_map.get('A4'))
 
-        name = re.search(r'[\u4e00-\u9fa5]{2,3}', line)
+        name = re.search(r'[\u4e00-\u9fa5]{2,10}', line)
         if name:
-            line = re.sub(r'[\u4e00-\u9fa5]{2,3}', ' ', line)
+            line = re.sub(r'[\u4e00-\u9fa5]{2,10}', ' ', line)
             sent_out.append(name.group().strip(" \n"))
             tags_out.append(hash_map.get('P'))
 
