@@ -5,7 +5,7 @@ from functools import partial
 from paddlenlp.data import Stack, Tuple, Pad
 from paddlenlp.metrics import ChunkEvaluator
 
-train_ds, dev_ds = load_dataset(datafiles=('./express_ner/train.txt', './express_ner/dev.txt'))
+train_ds, dev_ds = load_dataset(datafiles=('./data_set/train.txt', './data_set/dev.txt'))
 
 label_vocab = load_dict('./conf/tag.dic')
 
